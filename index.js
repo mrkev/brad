@@ -37,11 +37,12 @@ var get_questions = function () {
 
       // Print each unread
       convos.forEach(function (convo, index) {
-        var log = "{0} from {1}: {2}".format(
-          new Date(convo.conversation.conversation_time).toISOString().replace(/[ZT]/g,' ').substr(0,16),
-          convo.call[0].phone_number,
-          convo.conversation.message_text.slice(-1)[0]
-        );
+        var log = '' +
+          new Date(convo.conversation.conversation_time).toISOString().replace(/[ZT]/g,' ').substr(0,16) +
+          ' from ' +
+          convo.call[0].phone_number +
+          ': ' +
+          convo.conversation.message_text.slice(-1)[0];
         console.log(log);
         write_log += log + '\n';
       });
