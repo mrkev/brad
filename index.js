@@ -2,7 +2,8 @@
 
 // NPM modules
 var voicejs = require('voice.js'),
-    Promise = require('es6-promise').Promise;
+    Promise = require('es6-promise').Promise,
+    fs      = require('fs');
 
 // Local modules
 var brad = require('./brad')
@@ -32,14 +33,21 @@ var get_questions = function () {
         return console.log('No conversations.');
 
       var convos = data.conversations_response.conversationgroup;
+      var write_log = '';
 
       // Print each unread
       convos.forEach(function (convo, index) {
-        console.log('%s from %s: %s',
+        var log = "{0} from {1}: {2}".format(
           new Date(convo.conversation.conversation_time).toISOString().replace(/[ZT]/g,' ').substr(0,16),
           convo.call[0].phone_number,
           convo.conversation.message_text.slice(-1)[0]
         );
+        console.log(log);
+        write_log += log + '\n';
+      });
+
+      fs.appendFile('received_messages', write_log, function (err) {
+        if (err) console.log('Error writing to log');
       });
       
       console.log(convos.length +  ' conversations retrieved');
