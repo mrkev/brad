@@ -21,50 +21,53 @@ var inv_res =
    'do you even brad'];
 
 var hall_id = {
-  '104' : '104west',
-  'libe' : 'amit_bhatia_libe_cafe',
-  'atrium' : 'atrium_cafe',
-  // 'nasties' : 'bear_necessities',
-  'bears den' : 'bears_den',
-  'becker' : 'becker_house_dining_room',
-  'big red barn' : 'big_red_barn',
-  'jennie' : 'cafe_jennie',
-  'carols' : 'carols_cafe',
-  'cascadeli' : 'cascadeli',
-  'cook' : 'cook_house_dining_room',
-  'dairy bar' : 'cornell_dairy_bar',
-  'goldies' : 'goldies',
-  'green dragon' : 'green_dragon',
-  'ivy room' : 'ivy_room',
-  'bethe' : 'jansens_dining_room_bethe_house',
-  'jansens market' : 'jansens_market',
-  'keeton' : 'keeton_house_dining_room',
-  'marthas' : 'marthas_cafe',
-  // 'mattins' : 'mattins_cafe',
-  'appel' : 'north_star',
-  'okies' : 'okenshields',
-  'okenshields' : 'okenshields',
-  'risley' : 'risley_dining',
-  'rpcc' : 'robert_purcell_marketplace_eatery',
-  'rose' : 'rose_house_dining_room',
-  'rustys' : 'rustys',
-  'synapsis' : 'synapsis_cafe',
-  'trillium' : 'trillium'
+  '104west':                           '104',
+  'amit_bhatia_libe_cafe':             'libe',
+  'atrium_cafe':                       'atrium',
+  'bear_necessities':                  'nasties',
+  'bears_den':                         'bears den',
+  'becker_house_dining_room':          'becker',
+  'big_red_barn':                      'big red barn',
+  'cafe_jennie':                       'jennie',
+  'carols_cafe':                       'carols',
+  'cascadeli':                         'cascadeli',
+  'cook_house_dining_room':            'cook',
+  'cornell_dairy_bar':                 'dairy bar',
+  'goldies':                           'goldies',
+  'green_dragon':                      'green dragon',
+  'ivy_room':                          'ivy room',
+  'jansens_dining_room_bethe_house':   'bethe',
+  'jansens_market':                    'jansens market',
+  'keeton_house_dining_room':          'keeton',
+  'marthas_cafe':                      'marthas',
+  'mattins_cafe':                      'mattins',
+  'north_star':                        'appel',
+  'okenshields':                       'okenshields',
+  'risley_dining':                     'risley',
+  'robert_purcell_marketplace_eatery': 'rpcc',
+  'rose_house_dining_room':            'rose',
+  'rustys':                            'rustys',
+  'synapsis_cafe':                     'synapsis',
+  'trillium':                          'trillium'
 };
 
 module.exports.ask = function (message) {
+  message = message.toLowerCase();
+
   return rp(menus_req)
 
     .then(function (body) {
       var data = JSON.parse(body);
 
       var location = Object.keys(data).reduce(function (p, c) {
-        // var s = c.replace(/_.*$/, '');
         var s = hall_id[c];
+        console.log(message.indexOf(s));
         if (!p && message.indexOf(s) >= 0) return c;
-        else                                   return p;
+        else                               return p;
       }, false);
 
+      console.log(message);
+      console.log(location);
       if (!location)
         return inv_res[Math.floor(Math.random() * inv_res.length)];
 
