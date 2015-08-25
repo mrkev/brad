@@ -2,11 +2,11 @@
 
 // NPM modules
 var voicejs = require('voice.js'),
-    Promise = require('es6-promise').Promise,
-    fs      = require('fs');
+    Promise = require('es6-promise').Promise;
 
 // Local modules
-var brad = require('./brad')
+var brad = require('./brad'),
+    text = require('./textbelt/text');
 
 var client = new voicejs.Client({
   email:    process.argv[2] || 'brad@voice.js',
@@ -33,22 +33,16 @@ var get_questions = function () {
         return console.log('No conversations.');
 
       var convos = data.conversations_response.conversationgroup;
-      var write_log = '';
 
       // Print each unread
       convos.forEach(function (convo, index) {
-        var log = '' +
-          new Date(convo.conversation.conversation_time).toISOString().replace(/[ZT]/g,' ').substr(0,16) +
-          ' from ' +
-          convo.call[0].phone_number +
-          ': ' +
-          convo.conversation.message_text.slice(-1)[0];
-        console.log(log);
-        write_log += log + '\n';
-      });
+        var time = new Date(convo.conversation.conversation_time);
 
-      fs.appendFile('received_messages', write_log, function (err) {
-        if (err) console.log('Error writing to log');
+        console.log('%s from %s: %s',
+          time.toISOString().replace(/[ZT]/g,' ').substr(0,16),
+          convo.call[0].phone_number,
+          convo.conversation.message_text.slice(-1)[0]
+        );
       });
       
       console.log(convos.length +  ' conversations retrieved');
@@ -93,22 +87,18 @@ var answer = function (question) {
  */
 var send = function (ans) {
   return new Promise(function (resolve) {
-    // console.log('Would send to', ans.phone_number, ':', ans.message);
-    
-    var response = {
-      to:   ans.phone_number,
-      text: ans.message
-    }
 
     var done = {
       id:   ans.id,
       read: true
     }
 
-    console.log(response);
-    client.sms(response, function () {
+    text.send(ans.phone_number, ans.message, 'us', function (err) {
+      if (err) return console.trace(err);
+
       client.set('mark', done, resolve);
     });
+
   });
 }
 
