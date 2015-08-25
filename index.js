@@ -1,7 +1,8 @@
 'use strict';
 
 // NPM modules
-var voicejs = require('voice.js');
+var voicejs = require('voice.js'),
+    Promise = require('es6-promise').Promise;
 
 // Local modules
 var brad = require('./brad')
