@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/mrkev/brad#readme",
   "dependencies": {
+    "request-promise": "^0.4.3",
     "voice.js": "^0.1.5"
   }
 }

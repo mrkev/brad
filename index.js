@@ -1,9 +1,6 @@
 var voicejs = require('voice.js');
-// var brad = require('./brad')
+var brad = require('./brad')
 
-brad = {
-  ask : function () { return 'answer'; }
-}
 
 var client = new voicejs.Client({
   email: process.argv[2] || 'brad@voice.js',
@@ -56,13 +53,14 @@ var get_questions = function () {
  */
 var answer = function (question) {
   // console.log(question);
-  return new Promise(function (res, rej) {
+
+  return brad.ask(question.last_message).then(function (message) {
     var ans = {
       phone_number : question.phone_number,
       id : question.id,
-      message : brad.ask(question.last_message)
+      message : message
     };
-    res(ans);
+    return ans;
   });
 }
 
