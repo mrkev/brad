@@ -1,0 +1,27 @@
+{
+  "name": "brad",
+  "version": "0.0.0",
+  "description": "Brad knows about cornell stuff",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrkev/brad.git"
+  },
+  "keywords": [
+    "cornell",
+    "brad",
+    "lol"
+  ],
+  "author": "BAEjay Gandhi + Kevin Chavez whautp",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mrkev/brad/issues"
+  },
+  "homepage": "https://github.com/mrkev/brad#readme",
+  "dependencies": {
+    "voice.js": "^0.1.5"
+  }
+}
