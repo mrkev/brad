@@ -93,7 +93,11 @@ var send = function (ans) {
       read: true
     }
 
-    text.send(ans.phone_number, ans.message, 'us', function (err) {
+    // Remove +1
+    var pn = ans.phone_number;
+    if (pn.charAt(0) === '+') pn = pn.slice(2);
+
+    text.send(pn, ans.message, 'us', function (err) {
       if (err) return console.trace(err);
 
       client.set('mark', done, resolve);

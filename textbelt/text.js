@@ -1,7 +1,8 @@
-var providers = require('./providers.js')
-  , _ = require('underscore')
-  , exec = require('child_process').exec
-  , spawn = require('child_process').spawn;
+
+var providers = require('./providers.js'),
+    _         = require('underscore'),
+    exec      = require('child_process').exec,
+    spawn     = require('child_process').spawn;
 
 var debugEnabled = false;
 var fromAddress = 'brad@me.com';
