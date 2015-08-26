@@ -60,7 +60,7 @@ module.exports.ask = function (message) {
         // Open for that meal
         if (meal_data) {
           meal_data.forEach(function (m) {
-            content.push(m.name + (m.healthy ? ' 🍎' : ''));
+            content.push(m.name + (m.healthy ? ' (h)' : ''));
           });
 
           return {
