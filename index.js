@@ -2,11 +2,11 @@
 
 // NPM modules
 var voicejs = require('voice.js'),
+    text    = require('textbelt'),
     Promise = require('es6-promise').Promise;
 
 // Local modules
-var brad = require('./brad'),
-    text = require('./textbelt/text');
+var brad = require('./brad');
 
 var client = new voicejs.Client({
   email:    process.argv[2] || 'brad@voice.js',
