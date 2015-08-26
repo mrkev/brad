@@ -56,7 +56,7 @@ module.exports.sendText = function (phone, message, region, cb) {
   providers_list.forEach(function (provider) {
     // Create/get email and headers
     var email = provider.replace('%s', phone);
-    var headers = 'Subject: Answer\r\nFrom: Brad <' + fromAddress + '>\r\n\r\n';
+    var headers = 'Subject: /\r\nFrom: Brad <' + fromAddress + '>\r\n\r\n';
 
     var child = spawn('sendmail', ['-f', fromAddress, email]);
 
