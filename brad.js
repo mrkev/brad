@@ -16,10 +16,12 @@ var meals  = ['Breakfast', 'Brunch', 'Lunch', 'Dinner'],
     m_patt = /(breakfast|brunch|lunch|dinner)/;
 
 // Responses for invalid input
-var inv_res =
-  ['Sorry, I don\'t understand what you mean.',
-   'wat',
-   'do you even brad'];
+var inv_res = [
+  'Sorry, I don\'t get what you mean.',
+  'wat',
+  'lolwut',
+  'pls'
+];
 
 module.exports.ask = function (message) {
   message = message.toLowerCase();
@@ -35,12 +37,16 @@ module.exports.ask = function (message) {
       location = Object.keys(data).reduce(function (loc, current) {
         var s = shorten_name(current);
         if (!loc && message.indexOf(s) >= 0) return current;
-        else                               return loc;
+        else                                 return loc;
       }, false);
 
       // No location, return a random invalid response
-      if (!location)
-        return inv_res[Math.floor(Math.random() * inv_res.length)];
+      if (!location) {
+        return {
+          status: 'done',
+          c:      inv_res[Math.floor(Math.random() * inv_res.length)]
+        };
+      }
 
       var meal = m_patt.exec(message);
 
@@ -58,22 +64,26 @@ module.exports.ask = function (message) {
           });
 
           return {
-            type: 'menu',
-            c:    content.join('\n')
+            status: 'done',
+            c:      content.join('\n')
           };
 
         // Closed for that meal
         } else {
           return {
-            type: 'menu',
-            c:    'Closed for ' + meal[0]
+            status: 'done',
+            c:      'Closed for ' + meal[0]
           }
         }
 
       // Is hall open
       } else {
-        if (message.indexOf('open') < 0)
-          return inv_res[Math.floor(Math.random() * inv_res.length)];
+        if (message.indexOf('open') < 0) {
+          return {
+            status: 'done',
+            c:      inv_res[Math.floor(Math.random() * inv_res.length)]
+          };
+        }
 
         // UTC tz offset for EST tz converted to ms
         var est_tz_offset = 14400000; // 240 * 60000
@@ -98,7 +108,7 @@ module.exports.ask = function (message) {
 
     .then(function (result) {
       // Just return menu data
-      if (result.type && result.type === 'menu') {
+      if (result.status && result.status === 'done') {
         return result.c;
 
       // Open/closed query
