@@ -97,7 +97,7 @@ var send = function (ans) {
     var pn = ans.phone_number;
     if (pn.charAt(0) === '+') pn = pn.slice(2);
 
-    text.send(pn, ans.message, 'us', function (err) {
+    text.sendText(pn, ans.message, 'us', function (err) {
       if (err) return console.trace(err);
 
       client.set('mark', done, resolve);

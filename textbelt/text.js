@@ -1,81 +1,82 @@
+'use strict';
+
+/**
+ * Module for actually sending texts
+ */
 
 var providers = require('./providers.js'),
-    _         = require('underscore'),
     exec      = require('child_process').exec,
     spawn     = require('child_process').spawn;
 
 var debugEnabled = false;
 var fromAddress = 'brad@me.com';
 
-//----------------------------------------------------------------
-/*
-    General purpose logging function, gated by a configurable
-    value.
-*/
-function output() {
+/**
+ * General purpose logging function, gated by a configurable value
+ */
+var output = function () {
   if (debugEnabled) {
     return console.log.apply(this, arguments);
   }
 }
 
-//----------------------------------------------------------------
-/*  Enable verbosity for the text module.
-
-    If enabled, logging functions will
-    print to stdout.
-
-    Params:
-      enable - bool
-*/
-function debug(enable) {
+/**
+ * Enable or disable debug output
+ *
+ * @param [bool] enable - Whether to enable (true) or disable (false) debugging
+ *
+ * @returns [bool] Whether debugging is enabled or not
+ */
+module.exports.debug = function (enable) {
   debugEnabled = enable;
   return debugEnabled;
 }
 
-//----------------------------------------------------------------
-/*  Sends a text message
-
-    Will perform a region lookup (for providers), then
-    send a message to each.
-
-    Params:
-      phone - phone number to text
-      message - message to send
-      region - region to use (defaults to US)
-      cb - function(err), provides err messages
-*/
-function sendText(phone, message, region, cb) {
+/**
+ * Sends a text message by sending emails to all providers
+ *
+ * @param [string] phone   - The number to send a message to
+ * @param [string] message - The message to send
+ * @param [string] region  - The region the number is in
+ * @param [func]   cb      - Callback function
+ *
+ * @returns
+ */
+module.exports.sendText = function (phone, message, region, cb) {
   output('txting phone', phone, ':', message);
 
   region = region || 'us';
 
   var providers_list = providers[region];
 
-  var done = _.after(providers_list.length, function() {
-    cb(false);
-  });
+  var done = 0,
+      all  = providers_list.length;
 
+  // Send email to all providers
   providers_list.forEach(function (provider) {
+    // Create/get email and headers
     var email = provider.replace('%s', phone);
-    var msg = 'Subject: Answer\r\nFrom: Brad <' + fromAddress + '>\r\n\r\n' + message;
+    var headers = 'Subject: Answer\r\nFrom: Brad <' + fromAddress + '>\r\n\r\n';
 
     var child = spawn('sendmail', ['-f', fromAddress, email]);
 
+    // Pipe processes to output
     child.stdout.on('data', output);
     child.stderr.on('data', output);
-    child.on('error', function(data) {
-      output('sendmail failed', {email: email, data: data});
-      done();
+
+    child.on('error', function (err) {
+      output('sendmail failed', { email: email, err: err });
+      done++;
+      if (done == all) cb(false);
     });
-    child.on('exit', function(code, signal) {
-      done();
+
+    child.on('exit', function () {
+      done++;
+      if (done == all) cb(false);
     });
-    child.stdin.write(msg + '\n.');
+
+    // Write message then end input
+    child.stdin.write(headers + message + '\n.');
     child.stdin.end();
   });
 }
-
-module.exports = {
-  send:       sendText,     // Send a text message
-  debug:      debug         // Enable or disable debug output
-};

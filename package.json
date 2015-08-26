@@ -1,6 +1,6 @@
 {
   "name": "brad",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Brad knows about cornell stuff",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,6 @@
   "dependencies": {
     "es6-promise": "^3.0.2",
     "request-promise": "^0.4.3",
-    "underscore": "^1.8.3",
     "voice.js": "^0.1.5"
   }
 }
