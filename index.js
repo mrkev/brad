@@ -78,6 +78,13 @@ var answer = function (question) {
     });
 }
 
+var text_opts = {
+  fromName: 'Brad',
+  fromAddr: 'brad@me.com',
+  region:   'us',
+  subject:  '/'
+}
+
 /**
  * Sends answer objects, and marks the conversations as read.
  *
@@ -97,7 +104,7 @@ var send = function (ans) {
     var pn = ans.phone_number;
     if (pn.charAt(0) === '+') pn = pn.slice(2);
 
-    text.sendText(pn, ans.message, 'us', function (err) {
+    text.sendText(pn, ans.message, text_opts, function (err) {
       if (err) return console.trace(err);
 
       client.set('mark', done, resolve);
