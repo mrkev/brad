@@ -76,7 +76,7 @@ var answer = function (question) {
     .ask(question.last_message)
     .then(function (message) {
       // Record answer for log
-      sent_a[question.id] = ans;
+      sent_a[question.id] = message;
 
       return {
         phone_number: question.phone_number,

@@ -137,7 +137,7 @@ module.exports.ask = function (message) {
         });
 
         // Open now
-        if (atm.length > 0) {
+        if (atm && atm.length > 0) {
           return atm[0].summary;
 
         } else {
