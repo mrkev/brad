@@ -75,6 +75,9 @@ var answer = function (question) {
   return brad
     .ask(question.last_message)
     .then(function (message) {
+      // Record answer for log
+      sent_a[question.id] = ans;
+
       return {
         phone_number: question.phone_number,
         id:           question.id,
@@ -112,18 +115,6 @@ var send = function (ans) {
     text.sendText(pn, ans.message, text_opts, function (err) {
       if (err) return console.trace(err);
 
-      // Reduce recorded QA
-      var write_log = Object.keys(recd_q).reduce(function(acc, id) {
-        return acc + recd_q[id] + '\nAnswer: ' + sent_a[id] + '\n\n';
-      }, '');
-
-      fs.appendFile(log_filename, write_log, function (err) {
-        if (err) console.trace('Error writing to log', err);
-      });
-
-      recd_q = {};
-      sent_a = {};
-
       // Set as read
       client.set('mark', done, resolve);
     });
@@ -141,6 +132,23 @@ var main = function () {
   .then(function (answers) {
     // Send messages
     return Promise.all(answers.map(send))
+  })
+  .then(function () {
+
+    // Reduce recorded QA
+    var write_log = Object.keys(recd_q).reduce(function(acc, id) {
+      return acc + recd_q[id] + '\nAnswer: ' + sent_a[id] + '\n\n';
+    }, '');
+
+    // Write
+    fs.appendFile(log_filename, write_log, function (err) {
+      if (err) console.trace('Error writing to log', err);
+    });
+
+    // Clear
+    recd_q = {};
+    sent_a = {};
+
   })
   .catch(console.trace);
 
