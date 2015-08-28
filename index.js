@@ -3,7 +3,8 @@
 // NPM modules
 var voicejs = require('voice.js'),
     text    = require('textbelt'),
-    Promise = require('es6-promise').Promise;
+    Promise = require('es6-promise').Promise,
+    fs      = require('fs');
 
 // Local modules
 var brad = require('./brad');
@@ -13,6 +14,10 @@ var client = new voicejs.Client({
   password: process.argv[3] || 'qwertqwert',
   tokens:   require('./tokens.json')
 });
+
+var log_filename = './received_messages';
+var recd_q = {},
+    sent_a = {};
 
 /**
  * Gets all unread messages from inbox
@@ -30,7 +35,7 @@ var get_questions = function () {
       if (!data ||
           !data.conversations_response ||
           !data.conversations_response.conversationgroup)
-        return console.log('No conversations.');
+        return;
 
       var convos = data.conversations_response.conversationgroup;
 
@@ -38,11 +43,11 @@ var get_questions = function () {
       convos.forEach(function (convo, index) {
         var time = new Date(convo.conversation.conversation_time);
 
-        console.log('%s from %s: %s',
-          time.toISOString().replace(/[ZT]/g,' ').substr(0,16),
-          convo.call[0].phone_number,
-          convo.conversation.message_text.slice(-1)[0]
-        );
+        var log = time.toISOString().replace(/[ZT]/g,' ').substr(0,16) +
+          ' from ' + convo.call[0].phone_number + ': ' +
+          convo.conversation.message_text.slice(-1)[0];
+
+        recd_q[convo.conversation.id] = log;
       });
       
       console.log(convos.length +  ' conversations retrieved');
@@ -107,6 +112,19 @@ var send = function (ans) {
     text.sendText(pn, ans.message, text_opts, function (err) {
       if (err) return console.trace(err);
 
+      // Reduce recorded QA
+      var write_log = Object.keys(recd_q).reduce(function(acc, id) {
+        return acc + recd_q[id] + '\nAnswer: ' + sent_a[id] + '\n\n';
+      }, '');
+
+      fs.appendFile(log_filename, write_log, function (err) {
+        if (err) console.trace('Error writing to log', err);
+      });
+
+      recd_q = {};
+      sent_a = {};
+
+      // Set as read
       client.set('mark', done, resolve);
     });
 
@@ -131,3 +149,4 @@ var main = function () {
 }
 
 main();
+console.log('Started');
