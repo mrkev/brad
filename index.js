@@ -35,7 +35,7 @@ var get_questions = function () {
       if (!data ||
           !data.conversations_response ||
           !data.conversations_response.conversationgroup)
-        return;
+        return false;
 
       var convos = data.conversations_response.conversationgroup;
 
@@ -128,6 +128,8 @@ var send = function (ans) {
 var main = function () {
   // Get incoming unread messages
   get_questions().then(function (questions) {
+    if (questions == false) setTimeout(main.bind(this), 5000);
+
     // Handle messages
     return Promise.all(questions.map(answer))
   })
@@ -150,7 +152,6 @@ var main = function () {
     // Clear
     recd_q = {};
     sent_a = {};
-
 
     // Do this every 5s
     setTimeout(main.bind(this), 5000);
