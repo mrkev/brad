@@ -80,7 +80,7 @@ module.exports.ask = function (input) {
 
           return {
             s: cap(location.s) + ' ' + meal,
-            c: content.join('\n')
+            l: content.join('\n')
           }
 
         } else {
@@ -186,7 +186,6 @@ var open_for_meal = function (meal, data) {
     var start = (new Date(event.start)).getTime();
     var end   = (new Date(event.end)).getTime();
     var now   = meal.getTime();
-    console.log('lol');
     return (start < now) && (now < end);
   });
 
@@ -199,13 +198,12 @@ var invalid_response = function () {
   var inv_res = [
     'Sorry, I don\'t get what you mean.',
     'wat',
-    'lolwut',
-    'pls'
+    'lolwut'
   ];
 
   return {
-    status: 'done',
-    c:      inv_res[Math.floor(Math.random() * inv_res.length)]
+    s: 'pls',
+    l: inv_res[Math.floor(Math.random() * inv_res.length)]
   };
 }
 
