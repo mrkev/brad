@@ -15,105 +15,85 @@ var menus_req = 'http://redapi-tious.rhcloud.com/dining/menu/ALL/ALL/LOCATIONS',
 var meals  = ['Breakfast', 'Brunch', 'Lunch', 'Dinner'],
     m_patt = /(breakfast|brunch|lunch|dinner)/;
 
-// Responses for invalid input
-var inv_res = [
-  'Sorry, I don\'t get what you mean.',
-  'wat',
-  'lolwut',
-  'pls'
-];
+module.exports.ask = function (input) {
+  input = input.toLowerCase();
 
-module.exports.ask = function (message) {
-  message = message.toLowerCase();
-
-  var est_today, location;
+  var menu_data,
+      time_data,
+      location;
 
   return rp(menus_req)
 
     .then(function (body) {
-      var data = JSON.parse(body);
+      // Save menus
+      menu_data = JSON.parse(body);
 
-      // Get location from message
-      location = Object.keys(data).reduce(function (loc, current) {
+      // Extract long and short location from input
+      location = Object.keys(menu_data).reduce(function (loc, current) {
         var s = shorten_name(current);
-        if (!loc && message.indexOf(s) >= 0) return current;
+        if (!loc.l && input.indexOf(s) >= 0) return { s: s, l: current };
         else                                 return loc;
-      }, false);
+      }, { s: '', l: false });
 
-      // No location, return a random invalid response
-      if (!location) {
-        return {
-          status: 'done',
-          c:      inv_res[Math.floor(Math.random() * inv_res.length)]
-        };
+      // Create time req
+      // UTC tz offset for EST tz converted to ms
+      var est_tz_offset = 14400000; // 240 * 60000
+
+      var t         = new Date(),
+          utc_time  = t.getTime() + (t.getTimezoneOffset() * 60000),
+          est_today = new Date(utc_time - est_tz_offset),
+          est_tom   = new Date();
+
+      est_tom.setDate(est_tom.getDate() + 1);
+
+      var before = est_today.toDateString().replace(/ /g, '%20'),
+          after  = est_tom.toDateString().replace(/ /g, '%20');
+
+      var time_req = time_url + location.l + '/' + before + '-' + after;
+
+      return rp(time_req);
+    })
+    .then(function (body) {
+      time_data = JSON.parse(body);
+
+      // Fail if no location
+      if (!location.l) {
+        return invalid_response();
       }
 
-      var meal = m_patt.exec(message);
+      // Try to extract meal from input
+      var meal = m_patt.exec(input);
 
-      // Specific meal menu
       if (meal) {
-        meal = meal[0].charAt(0).toUpperCase() + meal[0].slice(1);
+        // Specific meal menu
+        meal = cap(meal[0]);
 
-        var meal_data = data[location][meal],
-            content   = [];
+        if (open_for_meal(meal, time_data[location.l]) && menu_data[location.l][meal]) {
 
-        // Open for that meal
-        if (meal_data) {
+          var meal_data = menu_data[location.l][meal],
+              content   = [];
+
+          // Open for that meal
           meal_data.forEach(function (m) {
             content.push(m.name + (m.healthy ? ' (h)' : ''));
           });
 
           return {
-            status: 'done',
-            c:      content.join('\n')
-          };
+            s: cap(location.s) + ' ' + meal,
+            c: content.join('\n')
+          }
 
-        // Closed for that meal
         } else {
+          // Return closed
           return {
-            status: 'done',
-            c:      'Closed for ' + meal[0]
+            s: cap(location.s),
+            l: cap(location.s) + ' is closed for ' + meal.toLowerCase() + '.'
           }
         }
 
-      // Is hall open
       } else {
-        if (message.indexOf('open') < 0) {
-          return {
-            status: 'done',
-            c:      inv_res[Math.floor(Math.random() * inv_res.length)]
-          };
-        }
-
-        // UTC tz offset for EST tz converted to ms
-        var est_tz_offset = 14400000; // 240 * 60000
-
-        var t         = new Date(),
-            utc_time  = t.getTime() + (t.getTimezoneOffset() * 60000),
-            est_tom   = new Date();
-
-        est_today = new Date(utc_time - est_tz_offset);
-        est_tom.setDate(est_tom.getDate() + 1);
-
-        var before = est_today.toDateString().replace(/ /g, '%20'),
-            after  = est_tom.toDateString().replace(/ /g, '%20');
-
-        var time_req = time_url + location + '/' + before + '-' + after;
-
-        return rp(time_req);
-
-      }
-
-    })
-
-    .then(function (result) {
-      // Just return menu data
-      if (result.status && result.status === 'done') {
-        return result.c;
-
-      // Open/closed query
-      } else {
-        var data = JSON.parse(result)[location];
+        // Open/closed
+        var data = time_data[location.l];
 
         // Open now
         var atm = data.filter(function (event) {
@@ -138,7 +118,10 @@ module.exports.ask = function (message) {
 
         // Open now
         if (atm && atm.length > 0) {
-          return atm[0].summary;
+          return {
+            s: cap(location.s),
+            l: atm[0].summary
+          };
 
         } else {
 
@@ -148,7 +131,6 @@ module.exports.ask = function (message) {
             var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
             var opens = new Date(nxt[0].start);
-            console.log(opens);
 
             var ret = days[opens.getDay()] + ', ' + months[opens.getMonth()];
                 ret += ' ' + opens.getDate();
@@ -164,23 +146,77 @@ module.exports.ask = function (message) {
 
             var m = opens.getMinutes();
 
-            return 'Closed right now. Opens on ' + ret + ' at ' + hrs + ':' +
-              ((m < 10) ? '0' + m : m) + ap + '.';
+            return {
+              s: cap(location.s),
+              l: 'Closed right now. Opens on ' + ret + ' at ' + hrs + ':' +
+                 ((m < 10) ? '0' + m : m) + ap + '.'
+            };
 
           // Closed and not open soon
           } else {
-            return 'Closed right now.';
+            return {
+              s: cap(location.s),
+              l: 'Closed right now.'
+            };
           }
         }
       }
     })
 
     .catch(function (e) {
-      console.trace(e);
+       throw e;
       return 'Couldn\'t get info :(';
     });
+
 };
 
+// Given a meal name and a set of time data, determine if the hall is open
+// during the meal
+var open_for_meal = function (meal, data) {
+  var mealtime = {
+    'Breakfast': new Date((new Date()).setHours(10, 0)),
+    'Brunch':    new Date((new Date()).setHours(11, 0)),
+    'Lunch':     new Date((new Date()).setHours(12, 0)),
+    'Dinner':    new Date((new Date()).setHours(18, 0))
+  }
+
+  meal = mealtime[meal];
+
+  var atm = data.filter(function (event) {
+    var start = (new Date(event.start)).getTime();
+    var end   = (new Date(event.end)).getTime();
+    var now   = meal.getTime();
+    console.log('lol');
+    return (start < now) && (now < end);
+  });
+
+  return (atm.length > 0);
+}
+
+// Returns an invalid response
+var invalid_response = function () {
+  // Responses for invalid input
+  var inv_res = [
+    'Sorry, I don\'t get what you mean.',
+    'wat',
+    'lolwut',
+    'pls'
+  ];
+
+  return {
+    status: 'done',
+    c:      inv_res[Math.floor(Math.random() * inv_res.length)]
+  };
+}
+
+// Capitalizes first letter after every space
+var cap = function (s) {
+  return s.replace(/\b\w/g, function (m) {
+      return m.toUpperCase();
+  });
+}
+
+// Converts a long name (hall id) to a short name
 var shorten_name = function (lg) {
   var hall_id = {
     '104west':                           '104',

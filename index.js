@@ -51,7 +51,7 @@ var get_questions = function () {
       });
       
       console.log(convos.length +  ' conversations retrieved');
-      
+
       var questions = convos.map(function (convo) {
         return {
           phone_number: convo.call[0].phone_number,
@@ -76,12 +76,13 @@ var answer = function (question) {
     .ask(question.last_message)
     .then(function (message) {
       // Record answer for log
-      sent_a[question.id] = message;
+      sent_a[question.id] = message.l;
 
       return {
         phone_number: question.phone_number,
         id:           question.id,
-        message:      message
+        subject:      message.s,
+        message:      message.l
       };
     });
 }
@@ -96,7 +97,7 @@ var text_opts = {
 /**
  * Sends answer objects, and marks the conversations as read.
  *
- * @param  {Object} ans {phone_number, id, message}
+ * @param  {Object} ans {phone_number, id, subject, message}
  *
  * @return {Promise}    to nothing lol.
  */
@@ -112,6 +113,7 @@ var send = function (ans) {
     var pn = ans.phone_number;
     if (pn.charAt(0) === '+') pn = pn.slice(2);
 
+    text_opts.subject = ans.subject;
     text.sendText(pn, ans.message, text_opts, function (err) {
       if (err) return console.trace(err);
 
@@ -149,12 +151,12 @@ var main = function () {
     recd_q = {};
     sent_a = {};
 
+
+    // Do this every 5s
+    setTimeout(main.bind(this), 5000);
   })
   .catch(console.trace);
-
-  // Do this every 5s
-  setTimeout(main.bind(this), 5000);
 }
 
 main();
-console.log('Started');
+console.log('Started.');
