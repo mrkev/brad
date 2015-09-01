@@ -55,12 +55,13 @@ module.exports.ask = function (input) {
       return rp(time_req);
     })
     .then(function (body) {
-      time_data = JSON.parse(body);
 
       // Fail if no location
       if (!location.l) {
         return invalid_response();
       }
+
+      time_data = JSON.parse(body);
 
       // Try to extract meal from input
       var meal = m_patt.exec(input);
