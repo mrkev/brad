@@ -20,7 +20,8 @@ module.exports.ask = function (input) {
 
   var menu_data,
       time_data,
-      location;
+      location,
+      est_today;
 
   return rp(menus_req)
 
@@ -41,9 +42,9 @@ module.exports.ask = function (input) {
 
       var t         = new Date(),
           utc_time  = t.getTime() + (t.getTimezoneOffset() * 60000),
-          est_today = new Date(utc_time - est_tz_offset),
           est_tom   = new Date();
 
+      est_today = new Date(utc_time - est_tz_offset),
       est_tom.setDate(est_tom.getDate() + 1);
 
       var before = est_today.toDateString().replace(/ /g, '%20'),
