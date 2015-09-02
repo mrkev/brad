@@ -76,7 +76,6 @@ module.exports.ask = function (input) {
               content   = [];
 
           // Open for that meal
-          console.log(meal_data);
           meal_data.forEach(function (m) {
             content.push(m.name + (m.healthy ? ' (h)' : ''));
           });
