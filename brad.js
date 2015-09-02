@@ -76,9 +76,14 @@ module.exports.ask = function (input) {
               content   = [];
 
           // Open for that meal
+          console.log(meal_data);
           meal_data.forEach(function (m) {
             content.push(m.name + (m.healthy ? ' (h)' : ''));
           });
+
+          // House dinner
+          if (meal_data[0].category === 'House Dinner')
+            content = ['House Dinner'];
 
           return {
             s: cap(location.s) + ' ' + meal,
